@@ -51,10 +51,30 @@ class UnivariateGaussian:
         Sets `self.mu_`, `self.var_` attributes according to calculated estimation (where
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
 
+        self.mu_ = np.mean(X)
+        if not self.biased_:
+            self.var_ = np.sum(np.power(X - self.mu_, 2))/(X.size-1)
+        else:
+            self.var_ = np.sum(np.power(X - self.mu_, 2)) / X.size
         self.fitted_ = True
+
         return self
+
+    def gaussian_density_func(self, sample: float) -> float:
+        """
+        Calculate the density of a sample
+
+        Parameters
+        ----------
+        value of single sample
+
+        Returns
+        -------
+        the density in the sample's value
+
+        """
+        return np.exp((sample - self.mu_)**2 / (-2*self.var_)) / (np.sqrt(2*np.pi*self.var_))
 
     def pdf(self, X: np.ndarray) -> np.ndarray:
         """
@@ -76,7 +96,13 @@ class UnivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+        ret_pdf = np.ndarray(X.size)
+        for i in range(X.size):
+            ret_pdf[i] = self.gaussian_density_func(X[i])
+        return ret_pdf
+
+
+
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
@@ -97,7 +123,12 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+        m = X.size
+        difference = np.sum(np.power(X - mu, 2))
+        # fraction = np.power(1/(2*np.pi*sigma),0.5*m)
+        log_like = -(m / 2) * np.log(2 * np.pi * sigma) - (1 / (2 * sigma)) * difference
+        return log_like
+
 
 
 class MultivariateGaussian:
@@ -143,10 +174,21 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
+        self.mu_ = np.mean(X, axis=0)
+        self.cov_ = np.cov(X.T)
 
         self.fitted_ = True
         return self
+
+    def multi_gaussian_density(self, X: np.ndarray) -> float:
+        """"
+        gets a random vector and returns the density of it.
+        """
+        cov_inv = np.linalg.inv(self.cov_)
+        cov_det = np.linalg.det(self.cov_)
+        dense = np.exp((-1/2)*(X-self.mu_).T * cov_inv *(X-self.mu_)) / \
+                np.sqrt(np.power(2*np.pi,X.size)* cov_det)
+        return dense
 
     def pdf(self, X: np.ndarray):
         """
@@ -168,7 +210,10 @@ class MultivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+        ret_pdf = np.ndarray(X.size)
+        for i in range(X.size):
+            ret_pdf[i] = self.multi_gaussian_density(X[i])
+        return ret_pdf
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
@@ -189,4 +234,10 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated over all input data and under given parameters of Gaussian
         """
-        raise NotImplementedError()
+        m = X.size
+        d = X[0].size
+        x_minus_mu = X - mu
+        cov_det = np.linalg.det(cov)
+        cov_inv = np.linalg.inv(cov)
+        log_like = -(d*m/2)*(np.log(2*np.pi)) - (m/2)*(np.log(cov_det)) - (1/2)*np.sum(x_minus_mu @ cov_inv @ x_minus_mu.T)
+        return log_like
