@@ -33,7 +33,23 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .2
         Responses of test samples
 
     """
-    raise NotImplementedError()
+    tagert = y.name
+    union_set = pd.concat([X,y], axis=1)
+    mix_union = union_set.sample(frac=1)
+    n_samples = mix_union.shape[0]
+    train_size = int(train_proportion * n_samples)
+    union_train = mix_union[:train_size]
+    union_test = mix_union[train_size:]
+    test_y = union_test[tagert]
+    test_x = union_test.drop([tagert], axis=1, inplace=False)
+    train_y = union_train[tagert]
+    train_x = union_train.drop([tagert], axis=1, inplace=False)
+
+    if len(train_x.columns) == 1:
+        train_x = train_x[train_x.columns[0]]
+        test_x = test_x[test_x.columns[0]]
+
+    return (train_x, train_y, test_x, test_y)
 
 
 def confusion_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
