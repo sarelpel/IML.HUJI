@@ -52,6 +52,20 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .7
     return (train_x, train_y, test_x, test_y)
 
 
+    # tagert_col = y.name
+    # df = pd.DataFrame(X)
+    # df[tagert_col] = y
+    # train_x = df.sample(frac=train_proportion)
+    # train_y = train_x[tagert_col]
+    # test_x = df[~df.index.isin(train_x.index)]
+    # test_y = test_x[tagert_col]
+    # train_x.drop([tagert_col], axis=1, inplace=True)
+    # test_x.drop([tagert_col], axis=1, inplace=True)
+    # if len(train_x.columns) == 1:
+    #     train_x = train_x[train_x.columns[0]]
+    #     test_x = test_x[test_x.columns[0]]
+    # return train_x, train_y, test_x, test_y
+
 def confusion_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """
     Compute a confusion matrix between two sets of integer vectors
